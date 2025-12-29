@@ -1,0 +1,110 @@
+<?php
+
+namespace App\Providers;
+
+use App\Models\User;
+use Illuminate\Support\Facades\Gate;
+use Laravel\Fortify\Features;
+use Laravel\Nova\Nova;
+use Laravel\Nova\NovaApplicationServiceProvider;
+
+class NovaServiceProvider extends NovaApplicationServiceProvider
+{
+    /**
+     * Bootstrap any application services.
+     */
+    public function boot(): void
+    {
+        parent::boot();
+
+        Nova::serving(function () {
+            //
+        });
+    }
+
+    /**
+     * Register the configurations for Laravel Fortify.
+     */
+    protected function fortify(): void
+    {
+        Nova::fortify()
+            ->features([
+                Features::updatePasswords(),
+                // Features::emailVerification(),
+                // Features::twoFactorAuthentication(['confirm' => true, 'confirmPassword' => true]),
+            ])
+            ->register();
+    }
+
+    /**
+     * Register the Nova routes.
+     */
+    protected function routes(): void
+    {
+        Nova::routes()
+            ->withAuthenticationRoutes(default: true)
+            ->withPasswordResetRoutes()
+            ->withoutEmailVerificationRoutes()
+            ->register();
+    }
+
+    /**
+     * Register the Nova gate.
+     *
+     * This gate determines who can access Nova in non-local environments.
+     */
+    protected function gate(): void
+    {
+        Gate::define('viewNova', function (User $user) {
+            // Allow all authenticated users to access Nova
+            return true;
+        });
+    }
+
+    /**
+     * Get the dashboards that should be listed in the Nova sidebar.
+     *
+     * @return array<int, \Laravel\Nova\Dashboard>
+     */
+    protected function dashboards(): array
+    {
+        return [
+            new \App\Nova\Dashboards\Main,
+        ];
+    }
+
+    /**
+     * Get the tools that should be listed in the Nova sidebar.
+     *
+     * @return array<int, \Laravel\Nova\Tool>
+     */
+    public function tools(): array
+    {
+        return [];
+    }
+
+    /**
+     * Register the application's Nova resources.
+     *
+     * @return void
+     */
+    protected function resources(): void
+    {
+        Nova::resources([
+            \App\Nova\User::class,
+            \App\Nova\Trip::class,
+            \App\Nova\Guide::class,
+            \App\Nova\Booking::class,
+        ]);
+    }
+
+    /**
+     * Register any application services.
+     */
+    public function register(): void
+    {
+        parent::register();
+
+        //
+    }
+}
